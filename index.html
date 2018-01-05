@@ -1,0 +1,436 @@
+<html>
+<head>
+
+ <meta charset="utf-8">
+ <link rel="icon" type="image/png" href="favicon.png" />
+ <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.css">
+ <script
+         src="https://code.jquery.com/jquery-3.1.1.min.js"
+         integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+         crossorigin="anonymous"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.js"></script>
+
+
+ <link href="//fonts.googleapis.com/css?family=Lato|Raleway:400,700|Patua+One" rel="stylesheet">
+
+ <title>Gestion de Personnes </title>
+
+ <style>
+  body {
+   text-align: center;
+   background:radial-gradient(ellipse at center,rgba(161,207,247,1) 0%,rgba(73,156,245,1) 100%);
+   filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#a1cff7',endColorstr='#499cf5',GradientType=1);
+  }
+  .logo{
+   padding: 0 8px;
+   border-radius: 5px 20px 5px;
+   display: inline-block;
+   background: #4f4f4f;
+
+   font-family:'Raleway',sans-serif;font-weight:700;
+   margin: 50px auto 30px auto !important;
+   color: white;
+   text-shadow:0 0 10px rgba(0,0,0,.01),0 0 5px rgba(0,0,0,.041),0 1px 1px rgba(0,0,0,.7)}
+  .mabar {
+   background: #282828;
+   padding: 8px;
+  }
+  table {
+   border-radius: 0!important;
+   margin-top: 0!important;
+   text-align: center!important;
+  }
+  .recherche {
+   width: 300px;
+  }
+  p {
+   padding: 0;
+   margin: 0;
+  }
+  .animation {
+   padding-top: 200px;
+   z-index: 1000;
+   background: #FFFFFF;
+   top: 0;
+   left: 0;
+   bottom: 0;
+   right: 0;
+   position: absolute;
+  }
+
+  #hello {
+   margin: auto;
+   font-family: 'Patua One', cursive ;
+   font-size: 70px;
+  }
+
+  .raleway {
+
+   font-family:'Raleway',sans-serif;font-weight:700;
+   font-size: 20px;
+   color: #282828;
+
+  }
+
+ </style>
+</head>
+<body>
+
+<div class="animation"><p id="hello">TP DAWS</p>
+<p class="raleway">Prof : Mme Bagdadi</p><p class="raleway">Dev : Aris Bilel</p></div>
+
+<div class="main">
+<h1 class="logo"> TP DAWS : développement d'un web service REST </h1>
+
+<div class="mabar">
+ <div class="ui labeled icon button" id="ajouter">
+  <i class="add user icon" ></i> Ajouter personne
+ </div>
+ <div class="ui action input">
+  <input type="text" class="recherche"  placeholder="Recherche...">
+  <button class="ui button" id="chercher">Chercher</button>
+ </div>
+</div>
+<table id ="mytable" class="ui compact selectable inverted celled table">
+ <thead>
+ <tr>
+  <th>Identifiant</th>
+  <th>Nom</th>
+  <th>Prénom</th>
+  <th>Modification</th>
+
+ </tr>
+ </thead>
+ <tbody>
+
+ </tbody>
+
+</table>
+
+
+
+<div class="ui basic modal ajout">
+ <div class="ui icon header">
+  <i class="add user icon"></i>
+  Ajouter unne personne
+ </div>
+ <div class="content" style="text-align: center;" >
+  <div class="ui input">
+   <input type="text" placeholder="Nom"  id="lname">
+  </div>
+  <div class="ui input">
+   <input type="text" placeholder="Prénom"  id="fname">
+  </div>
+ </div>
+ <div class="actions" style="text-align: center;">
+  <div class="ui red basic cancel inverted button"  id="annuler">
+   <i class="remove icon"></i>
+   Annuler
+  </div>
+  <div class="ui green ok inverted button" id="ajouterPer" >
+   <i class="checkmark icon"></i>
+   Ajouter
+  </div>
+ </div>
+</div>
+
+<div class="ui basic modal edition">
+ <div class="ui icon header">
+  <i class="edit icon"></i>
+  Modifier personne
+ </div>
+ <div class="content" style="text-align: center;" >
+  <div class="ui input">
+   <input type="text"   placeholder="Nom" id="lname2">
+  </div>
+  <div class="ui input">
+   <input type="text"  placeholder="Prénom" id="fname2">
+  </div>
+ </div>
+ <div class="actions" style="text-align: center;">
+  <div class="ui red basic cancel inverted button"  >
+   <i class="remove icon"></i>
+   Annuler
+  </div>
+  <div class="ui green ok inverted button" id="modifierPer" >
+   <i class="checkmark icon"></i>
+   Modifier
+  </div>
+ </div>
+</div>
+
+
+
+</div>
+
+
+
+<script>
+    var current_id_edit = "";
+    var current_tr_edit;
+    var search_input = "";
+    var enabler1 = false;
+    var enabler2= false;
+
+    function getPersons () {
+
+
+        $.get("/api/persons", function(data){
+            for(var i in data)
+            {
+                var id = data[i].id;
+                var lastname = data[i].lastname;
+                var firstname = data[i].firstname;
+                $("#mytable").find('tbody')
+                    .append($('<tr>')
+                        .append($('<td>')
+                            .text(id)
+                            .css("font-weight", "bold")
+                        )
+
+                        .append($('<td>')
+                            .text(lastname))
+
+                        .append($('<td>')
+                            .text(firstname))
+
+                        .append($('<td>')
+                            .append('<div class="ui icon button" id="edit" data-tooltip="Mettre à jour la personne" data-inverted=""><i class="edit icon"></i></div>')
+                            .append('<div class="ui icon button" id="remove" data-tooltip="Supprimer la personne" data-inverted=""><i class="remove user icon" ></i></div>'))
+
+                    )
+
+                ;
+            }
+        });
+
+    }
+
+    function deletePerson(id) {
+
+        $.ajax({
+            url: '/api/persons/'+id,
+            type: 'DELETE'
+
+        });
+
+
+
+
+
+    }
+
+
+    $(document).ready(function() {
+
+        $.wait = function( callback, mlseconds){
+            return window.setTimeout( callback, mlseconds  );
+        }
+
+
+
+
+
+
+        $.wait( function(){ $(".animation").css("background", "#3a84c3") }, 500);
+        $.wait( function(){ $(".animation").css("background", "#6baff6") }, 0);
+        $.wait( function(){ $(".animation").css("background", "#a1cff7") }, 250);
+        $.wait( function(){ $(".animation").css("background", "#60a9f5") }, 750);
+        $.wait( function(){ $(".animation").css("background", "radial-gradient(ellipse at center,rgba(161,207,247,1) 0%,rgba(73,156,245,1) 100%)") }, 1000);
+        $.wait( function(){ $(".animation").fadeOut(); }, 2500);
+
+
+
+
+
+
+        getPersons();
+
+        $(document).on('click', '#edit', function(){
+            current_tr_edit = $(this).closest('tr');
+            current_id_edit = $(this).closest('tr').children('td:eq(0)').text();
+            $("#lname2").val($(this).closest('tr').children('td:eq(1)').text()) ;
+            $("#fname2").val($(this).closest('tr').children('td:eq(2)').text());
+
+            $('.ui.basic.modal.edition')
+                .modal('show')
+            ;
+
+
+
+
+        });
+        $(document).on('click', '#remove', function(){
+            var current_id = $(this).closest('tr').children('td:eq(0)').text();
+
+            $(this).closest('tr').remove();
+            deletePerson(current_id);
+
+
+
+        });
+
+
+
+
+
+
+        $(document).on('click', '#ajouter', function(){
+          $('.ui.basic.modal.ajout')
+                .modal('show')
+            ;
+
+
+
+
+        });
+
+        $("#ajouterPer").click(function () {
+
+             var firstname = $("#fname").val();
+             var lastname = $("#lname").val();
+             var personne = {"lastname" : lastname, "firstname": firstname};
+            $.ajax({
+                url: '/api/persons/',
+                type: 'POST',
+                data : JSON.stringify(personne),
+                contentType: 'application/json',
+                success : function (data) {
+                    $("#mytable").find('tbody')
+                        .append($('<tr>')
+                            .append($('<td>')
+                                .text(data.id)
+                                .css("font-weight", "bold")
+                            )
+
+                            .append($('<td>')
+                                .text(data.lastname))
+
+                            .append($('<td>')
+                                .text(data.firstname))
+
+                            .append($('<td>')
+                                .append('<div class="ui icon button" id="edit"  data-tooltip="Mettre à jour la personne" data-inverted=""><i class="edit icon"></i></div>')
+                                .append('<div class="ui icon button" id="remove" data-tooltip="Supprimer la personne" data-inverted=""><i class="remove user icon" ></i></div>'))
+
+                        )
+
+                    ;
+                    }
+
+            });
+
+
+
+
+
+
+
+        })
+
+        $("#modifierPer").click(function () {
+
+            var firstname = $("#fname2").val();
+            var lastname = $("#lname2").val();
+            var personne = {"lastname" : lastname,"id": current_id_edit,"firstname": firstname};
+            $.ajax({
+                url: '/api/persons/',
+                type: 'PUT',
+                data : JSON.stringify(personne),
+                contentType: 'application/json',
+                success : function () {
+                    $("tbody").find(current_tr_edit).children('td:eq(1)').html(lastname)
+                    $("tbody").find(current_tr_edit).children('td:eq(2)').html(firstname);
+
+                }
+
+
+
+
+
+
+
+
+            });
+
+
+
+
+
+
+
+        })
+
+        $("#chercher").click(function () {
+            lastname="";
+            firstname="";
+            search_input = $(".recherche").val();
+            var search_input_array = search_input.split(" ");
+            if (search_input_array.length == 1) {
+                var  lastname = search_input_array[0];
+            } else if (search_input_array.length == 2){
+
+                lastname = search_input_array[0];
+                var firstname = search_input_array[1];
+            }
+
+            $.ajax({
+                url: '/api/persons?lastname='+lastname+'&firstname='+firstname,
+                type: 'GET',
+                success : function (data) {
+
+                    if (data.length==0) {
+                        $("#mytable").find('tbody').after('<tr id="notfound" style="text-align: center;" ><td colspan="4">Aucune personne trouvée ! </td></tr>')
+
+
+                    }
+                    else {
+                        $("#notfound").remove();
+                    }
+
+                    $("tbody").empty();
+                    for(var i in data)
+                    {
+                        var id = data[i].id;
+                        var lastname = data[i].lastname;
+                        var firstname = data[i].firstname;
+                        $("#mytable").find('tbody')
+                            .append($('<tr>')
+                                .append($('<td>')
+                                    .text(id)
+                                    .css("font-weight", "bold")
+                                )
+
+                                .append($('<td>')
+                                    .text(lastname))
+
+                                .append($('<td>')
+                                    .text(firstname))
+
+                                .append($('<td>')
+                                    .append('<div class="ui icon button" id="edit" data-tooltip="Mettre à jour la personne" data-inverted=""><i class="edit icon"></i></div>')
+                                    .append('<div class="ui icon button" id="remove" data-tooltip="Supprimer la personne" data-inverted=""><i class="remove user icon" ></i></div>'))
+
+                            )
+
+                        ;
+                    }
+
+
+                }
+
+            });
+
+        })
+
+
+
+
+
+
+
+
+    });
+</script>
+</body>
+</html>
